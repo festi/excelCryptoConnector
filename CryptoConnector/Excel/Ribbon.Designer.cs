@@ -44,6 +44,7 @@
             this.button5 = this.Factory.CreateRibbonButton();
             this.button7 = this.Factory.CreateRibbonButton();
             this.button8 = this.Factory.CreateRibbonButton();
+            this.button9 = this.Factory.CreateRibbonButton();
             this.tab1.SuspendLayout();
             this.group1.SuspendLayout();
             this.SuspendLayout();
@@ -65,6 +66,7 @@
             this.group1.Items.Add(this.button5);
             this.group1.Items.Add(this.button7);
             this.group1.Items.Add(this.button8);
+            this.group1.Items.Add(this.button9);
             this.group1.Label = "group1";
             this.group1.Name = "group1";
             // 
@@ -122,6 +124,12 @@
             this.button8.Name = "button8";
             this.button8.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button8_Click);
             // 
+            // button9
+            // 
+            this.button9.Label = "update NEO";
+            this.button9.Name = "button9";
+            this.button9.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button9_Click);
+            // 
             // Ribbon
             // 
             this.Name = "Ribbon";
@@ -148,6 +156,7 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button5;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button7;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button8;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton button9;
     }
 
     partial class ThisRibbonCollection

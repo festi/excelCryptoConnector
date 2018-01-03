@@ -184,6 +184,7 @@
     can be found.
   -->
   <ItemGroup>
+    <Compile Include="Accounts\Wallets\NeoscanConnector.cs" />
     <Compile Include="Excel\AccountsSheet.cs" />
     <Compile Include="Accounts\Exchanges\BinanceConnector.cs" />
     <Compile Include="Accounts\Exchanges\BitFinexConnector.cs" />

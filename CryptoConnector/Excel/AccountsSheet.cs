@@ -35,6 +35,9 @@ namespace CryptoConnector
         private static readonly int ETHERSCAN_ROW = 32;
         private static readonly int ETHERSCAN_KEY_ROW = 33;
 
+        private static readonly int NEOSCAN_ROW = 35;
+        private static readonly int NEOSCAN_KEY_ROW = 36;
+
         private static readonly int SYNC_CONFIG = 1;
         private static readonly int SYNC_BALANCE = 2;
         private static readonly int SYNC_BALANCE_HISTORY = 3;
@@ -147,6 +150,10 @@ namespace CryptoConnector
             s.Range["A" + ETHERSCAN_ROW].Value = "Ethereum address (Powered by Ethplorer.io)";
             s.Range["B" + ETHERSCAN_ROW].Value = SupportText(new EthplorerConnector());
             s.Range["A" + ETHERSCAN_KEY_ROW].Value = "public key";
+
+            s.Range["A" + NEOSCAN_ROW].Value = "NEO address (Powered by neoscan.io)";
+            s.Range["B" + NEOSCAN_ROW].Value = SupportText(new NeoscanConnector());
+            s.Range["A" + NEOSCAN_KEY_ROW].Value = "public key";
         }
 
         public static IEnumerable<AccountConnector> ListAccounts()
@@ -182,6 +189,11 @@ namespace CryptoConnector
             for (int index = 0; GetParam(ETHERSCAN_KEY_ROW, index) != ""; ++index)
             {
                 accounts.Add(new EthplorerConnector(GetParam(ETHERSCAN_KEY_ROW, index)));
+            }
+
+            for (int index = 0; GetParam(NEOSCAN_KEY_ROW, index) != ""; ++index)
+            {
+                accounts.Add(new NeoscanConnector(GetParam(NEOSCAN_KEY_ROW, index)));
             }
 
             accounts.Add(new ManualConnector());

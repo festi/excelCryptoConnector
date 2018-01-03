@@ -57,5 +57,10 @@ namespace CryptoConnector
         {
             Exchanges.RefreshOnly<EthplorerConnector>();
         }
+
+        private void button9_Click(object sender, RibbonControlEventArgs e)
+        {
+            Exchanges.RefreshOnly<NeoscanConnector>();
+        }
     }
 }
