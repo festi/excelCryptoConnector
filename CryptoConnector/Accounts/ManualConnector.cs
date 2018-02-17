@@ -15,6 +15,8 @@ namespace CryptoConnector
         public override bool SupportBalanceHistory => false;
         public override bool SupportFills => false;
 
+        public override bool BalanceContainsAccountName => true;
+
         protected override void RefreshBalanceHistory_Internal(Worksheet sheet, AccountId id)
         {
         }

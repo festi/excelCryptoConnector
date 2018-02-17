@@ -89,7 +89,17 @@ Source";
 
         private IEnumerable<string> ExchangeConnectorToBalanceQuery(IEnumerable<AccountConnector> src)
         {
-            return src.Select(x => AddColumn($"Excel.CurrentWorkbook(){{[Name=\"{x.BalanceSheetName}\"]}}[Content]", EXCHANGE_COLUMN, x.Name));
+            foreach(var account in src)
+            {
+                if (account.BalanceContainsAccountName)
+                {
+                    yield return $"Excel.CurrentWorkbook(){{[Name=\"{account.BalanceSheetName}\"]}}[Content]";
+                }
+                else
+                {
+                    yield return AddColumn($"Excel.CurrentWorkbook(){{[Name=\"{account.BalanceSheetName}\"]}}[Content]", EXCHANGE_COLUMN, account.Name);
+                }
+            }
         }
 
         private string AddColumn(string src, string columnname, string columnValue)

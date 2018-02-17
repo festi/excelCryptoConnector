@@ -23,6 +23,9 @@ namespace CryptoConnector
         public abstract bool SupportBalanceHistory { get; }
         public abstract bool SupportFills { get; }
 
+        // if true, the balance sheet contains a 'account' colomn describing from which account belong each line
+        public virtual bool BalanceContainsAccountName { get { return false; } }
+
         // functions to implement by each implementation
         protected abstract List<AccountId> RefreshBalance_Internal(Worksheet sheet);
         protected abstract void RefreshBalanceHistory_Internal(Worksheet sheet, AccountId id);
