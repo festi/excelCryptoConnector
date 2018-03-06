@@ -11,7 +11,7 @@ namespace CryptoConnector
     {
         public const string API_ADDRESS = "https://api.ethplorer.io";
 
-        public override string Name => $"eth_{PublicKey}";
+        public override string UniqueName => $"eth_{PublicKey}";
 
         public override bool SupportBalance => true;
         public override bool SupportBalanceHistory => false;
@@ -19,9 +19,9 @@ namespace CryptoConnector
 
         private string PublicKey;
 
-        public EthplorerConnector() { }
+        public EthplorerConnector() : base("") { }
 
-        public EthplorerConnector(string _PublicKey)
+        public EthplorerConnector(string name, string _PublicKey) : base(name)
         {
             PublicKey = _PublicKey;
         }

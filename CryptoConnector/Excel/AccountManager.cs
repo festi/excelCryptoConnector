@@ -63,8 +63,9 @@ namespace CryptoConnector
                     // if the workbook contains no queries, this line throw an exception
                     bool exist = workbook.Queries.Cast<WorkbookQuery>().Any(x => x.Name == BALANCE_QUERY);
                     var query = exist ? workbook.Queries[BALANCE_QUERY] : workbook.Queries.Add(BALANCE_QUERY, "");
+                    var expectedFormula = BalanceQueryFormula(accounts);
 
-                    if (!exist || accounts.Any(x => !query.Formula.Contains(x.BalanceSheetName)))
+                    if (!exist || query.Formula != expectedFormula)
                     {
                         query.Formula = BalanceQueryFormula(accounts);
                     }
@@ -97,7 +98,7 @@ Source";
                 }
                 else
                 {
-                    yield return AddColumn($"Excel.CurrentWorkbook(){{[Name=\"{account.BalanceSheetName}\"]}}[Content]", EXCHANGE_COLUMN, account.Name);
+                    yield return AddColumn($"Excel.CurrentWorkbook(){{[Name=\"{account.BalanceSheetName}\"]}}[Content]", EXCHANGE_COLUMN, account.ReadableName);
                 }
             }
         }

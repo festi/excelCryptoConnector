@@ -11,7 +11,7 @@ namespace CryptoConnector
     {
         public const string API_ADDRESS = "https://neoscan.io";
 
-        public override string Name => $"neo_{PublicKey}";
+        public override string UniqueName => $"neo_{PublicKey}";
 
         public override bool SupportBalance => true;
         public override bool SupportBalanceHistory => false;
@@ -19,9 +19,9 @@ namespace CryptoConnector
         
         private string PublicKey;
 
-        public NeoscanConnector() { }
+        public NeoscanConnector() : base("") { }
 
-        public NeoscanConnector(string _PublicKey)
+        public NeoscanConnector(string name, string _PublicKey) : base(name)
         {
             PublicKey = _PublicKey;
         }

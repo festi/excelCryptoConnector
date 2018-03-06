@@ -15,7 +15,7 @@ namespace CryptoConnector
     {
         public const string API_ADDRESS = "https://api.gdax.com";
 
-        public override string Name => $"gdax_{Key}";
+        public override string UniqueName => $"gdax_{Key}";
 
         public override bool SupportBalance => true;
         public override bool SupportBalanceHistory => true;
@@ -27,9 +27,9 @@ namespace CryptoConnector
             public string account_id;
         }
 
-        public GdaxConnector() { }
+        public GdaxConnector() : base("") { }
 
-        public GdaxConnector(string _Passphrase, string _Key, string _Secret)
+        public GdaxConnector(string name, string _Passphrase, string _Key, string _Secret) : base(name)
         {
             Passphrase = _Passphrase;
             Key = _Key;

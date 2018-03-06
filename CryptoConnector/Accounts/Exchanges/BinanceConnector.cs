@@ -15,7 +15,7 @@ namespace CryptoConnector
     {
         public const string API_ADDRESS = "https://api.binance.com";
 
-        public override string Name => $"binance_{Key}";
+        public override string UniqueName => $"binance_{Key}";
 
         public override bool SupportBalance => true;
         public override bool SupportBalanceHistory => false;
@@ -23,9 +23,9 @@ namespace CryptoConnector
 
         private string Key, Secret;
 
-        public BinanceConnector() { }
+        public BinanceConnector() : base("") { }
 
-        public BinanceConnector(string _Key, string _Secret)
+        public BinanceConnector(string name, string _Key, string _Secret) : base(name)
         {
             Key = _Key;
             Secret = _Secret;

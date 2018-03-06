@@ -15,7 +15,7 @@ namespace CryptoConnector
     {
         public const string API_ADDRESS = "https://www.cryptopia.co.nz";
 
-        public override string Name => $"cryptopia_{Key}";
+        public override string UniqueName => $"cryptopia_{Key}";
 
         public override bool SupportBalance => true;
         public override bool SupportBalanceHistory => false;
@@ -23,9 +23,9 @@ namespace CryptoConnector
 
         private string Key, Secret;
 
-        public CryptopiaConnector() { }
+        public CryptopiaConnector() : base("") { }
 
-        public CryptopiaConnector(string _Key, string _Secret)
+        public CryptopiaConnector(string name, string _Key, string _Secret) : base(name)
         {
             Key = _Key;
             Secret = _Secret;

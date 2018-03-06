@@ -15,7 +15,7 @@ namespace CryptoConnector
     {
         public const string API_ADDRESS = "https://bittrex.com";
 
-        public override string Name => $"bittrex_{Key}";
+        public override string UniqueName => $"bittrex_{Key}";
 
         public override bool SupportBalance => true;
         public override bool SupportBalanceHistory => false;
@@ -23,9 +23,9 @@ namespace CryptoConnector
 
         private string Key, Secret;
 
-        public BittrexConnector() { }
+        public BittrexConnector() : base("") { }
 
-        public BittrexConnector(string _Key, string _Secret)
+        public BittrexConnector(string name, string _Key, string _Secret) : base(name)
         {
             Key = _Key;
             Secret = _Secret;

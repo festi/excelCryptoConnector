@@ -16,7 +16,7 @@ namespace CryptoConnector
     {
         public const string API_ADDRESS = "https://api.bitfinex.com";
 
-        public override string Name => $"bitfinex_{Key}";
+        public override string UniqueName => $"bitfinex_{Key}";
 
         public override bool SupportBalance => true;
         public override bool SupportBalanceHistory => true;
@@ -24,9 +24,9 @@ namespace CryptoConnector
 
         private string Key, Secret;
 
-        public BitFinexConnector() { }
+        public BitFinexConnector() : base("") { }
 
-        public BitFinexConnector(string _Key, string _Secret)
+        public BitFinexConnector(string name, string _Key, string _Secret) : base(name)
         {
             Key = _Key;
             Secret = _Secret;

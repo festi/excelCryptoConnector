@@ -16,7 +16,9 @@ namespace CryptoConnector
     abstract class AccountConnector
     {
         // name use to match accounts with excel sheets (need to be unique)
-        public abstract string Name { get; }
+        public abstract string UniqueName { get; }
+        // name displayed in the tables (does not need to be unique)
+        public string ReadableName { get; private set; }
 
         // signal which functions are supported
         public abstract bool SupportBalance { get; }
@@ -33,9 +35,14 @@ namespace CryptoConnector
 
         // get the name of excel sheet of the account
         // the name of the account is at the end because it can be truncated
-        public string BalanceSheetName { get { return LimitLengthForExcel($"balance_{Name}"); } }
-        public string BalanceHistorySheetName(string symbol) { return LimitLengthForExcel($"balance_hist_{symbol.ToUpper()}_{Name}"); }
-        public string FillsSheetName { get { return LimitLengthForExcel($"fills_{Name}"); } }
+        public string BalanceSheetName { get { return LimitLengthForExcel($"balance_{UniqueName}"); } }
+        public string BalanceHistorySheetName(string symbol) { return LimitLengthForExcel($"balance_hist_{symbol.ToUpper()}_{UniqueName}"); }
+        public string FillsSheetName { get { return LimitLengthForExcel($"fills_{UniqueName}"); } }
+
+        public AccountConnector(string readableName)
+        {
+            ReadableName = readableName;
+        }
 
         private string LimitLengthForExcel(string s)
         {
