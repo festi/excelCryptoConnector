@@ -36,22 +36,25 @@ namespace CryptoConnector
             // and the claimable amount of GAS
             var claimlable = Request<Claimable>(API_ADDRESS, $"/api/main_net/v1/get_claimable/{PublicKey}");
 
-            int line = 2;
-            foreach (var a in accounts.balance)
+            ExecuteExcelJobSync(delegate ()
             {
-                // amount of clamaible of this currency
-                double this_claimable = a.asset == "GAS" ? claimlable.unclaimed : 0.0d;
+                int line = 2;
+                foreach (var a in accounts.balance)
+                {
+                    // amount of clamaible of this currency
+                    double this_claimable = a.asset == "GAS" ? claimlable.unclaimed : 0.0d;
 
-                // we put the claimable balance on hold
-                sheet.Range["A" + line].Value = ParseSymbol(a.asset);
-                sheet.Range["B" + line].Value = a.amount + this_claimable;
-                sheet.Range["C" + line].Value = a.amount;
-                sheet.Range["D" + line].Value = this_claimable;
+                    // we put the claimable balance on hold
+                    sheet.Range["A" + line].Value = ParseSymbol(a.asset);
+                    sheet.Range["B" + line].Value = a.amount + this_claimable;
+                    sheet.Range["C" + line].Value = a.amount;
+                    sheet.Range["D" + line].Value = this_claimable;
 
-                res.Add(new AccountId { currency = a.asset });
+                    res.Add(new AccountId { currency = a.asset });
 
-                line++;
-            }
+                    line++;
+                }
+            });
 
             return res;
         }

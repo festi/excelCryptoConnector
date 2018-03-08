@@ -1,11 +1,13 @@
 ﻿using Microsoft.Office.Interop.Excel;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoConnector
@@ -39,6 +41,10 @@ namespace CryptoConnector
         public string BalanceHistorySheetName(string symbol) { return LimitLengthForExcel($"balance_hist_{symbol.ToUpper()}_{UniqueName}"); }
         public string FillsSheetName { get { return LimitLengthForExcel($"fills_{UniqueName}"); } }
 
+        // excel API is not thread-safe, we use a job queue to commit action to a single thread that iinteract with excel
+        private BlockingCollection<Task> ExcelJobs = new BlockingCollection<Task>();
+        private Thread ExcelJobsThread = null;
+
         public AccountConnector(string readableName)
         {
             ReadableName = readableName;
@@ -60,6 +66,8 @@ namespace CryptoConnector
 
         /// <summary>
         /// look for the first empty line and give the max value of a certain colunm
+        /// 
+        /// this function is thread-safe
         /// </summary>
         /// <param name="sheet"></param>
         /// <param name="column">name of the column where the we look for the max value (or -1 if the table is empty)</param>
@@ -67,18 +75,26 @@ namespace CryptoConnector
         /// <param name="highestValue">highest value found in column 'column' (or -1 if the table is empty)</param>
         protected void LastLineLookup(Worksheet sheet, string column, out int firstEmptyLine, out long highestValue)
         {
-            highestValue = -1;
-            firstEmptyLine = 2;
+            int _highestValue = -1;
+            int _firstEmptyLine = 2;
 
-            while (sheet.Range[column + firstEmptyLine].Value2 != null)
+            ExecuteExcelJobSync(delegate ()
             {
-                highestValue = Math.Max(highestValue, Convert.ToInt64(sheet.Range[column + firstEmptyLine].Value2));
-                firstEmptyLine++;
-            }
+                while (sheet.Range[column + _firstEmptyLine].Value2 != null)
+                {
+                    _highestValue = Math.Max(_highestValue, Convert.ToInt64(sheet.Range[column + _firstEmptyLine].Value2));
+                    _firstEmptyLine++;
+                }
+            });
+
+            firstEmptyLine = _firstEmptyLine;
+            highestValue = _highestValue;
         }
 
         /// <summary>
         /// look for the first empty line and give the set of a value in a specific column
+        /// 
+        /// this function is thread-safe
         /// </summary>
         /// <param name="sheet"></param>
         /// <param name="column">name of the column where to pull values</param>
@@ -86,14 +102,20 @@ namespace CryptoConnector
         /// <param name="values">list of values found in column 'column'</param>
         protected void LastLineLookupList(Worksheet sheet, string column, out int firstEmptyLine, out List<string> values)
         {
-            firstEmptyLine = 2;
-            values = new List<string>();
+            int _firstEmptyLine = 2;
+            var _values = new List<string>();
 
-            while (sheet.Range[column + firstEmptyLine].Value2 != null)
+            ExecuteExcelJobSync(delegate ()
             {
-                values.Add(sheet.Range[column + firstEmptyLine].Value2);
-                firstEmptyLine++;
-            }
+                while (sheet.Range[column + _firstEmptyLine].Value2 != null)
+                {
+                    _values.Add(sheet.Range[column + _firstEmptyLine].Value2);
+                    _firstEmptyLine++;
+                }
+            });
+            
+            firstEmptyLine = _firstEmptyLine;
+            values = _values;
         }
 
         public void Refresh()
@@ -155,24 +177,27 @@ namespace CryptoConnector
             bool wasCreated;
             Worksheet sheet = Globals.ThisAddIn.FindWorksheet(FillsSheetName, true, out wasCreated);
 
-            if (wasCreated) sheet.Visible = XlSheetVisibility.xlSheetHidden;
-            
-            sheet.Range["A1"].Value = "id";
-            sheet.Range["B1"].Value = "date";
+            ExecuteExcelJobSync(delegate ()
+            {
+                if (wasCreated) sheet.Visible = XlSheetVisibility.xlSheetHidden;
 
-            //sheet.Range["C1", "E1"].Merge();
-            sheet.Range["C1"].Value = "from";
-            sheet.Range["D1"].Value = "from currency";
+                sheet.Range["A1"].Value = "id";
+                sheet.Range["B1"].Value = "date";
 
-            //sheet.Range["E1", "H1"].Merge();
-            sheet.Range["E1"].Value = "to";
-            sheet.Range["F1"].Value = "to currency";
+                //sheet.Range["C1", "E1"].Merge();
+                sheet.Range["C1"].Value = "from";
+                sheet.Range["D1"].Value = "from currency";
 
-            //sheet.Range["G1", "K1"].Merge();
-            sheet.Range["G1"].Value = "fee";
-            sheet.Range["H1"].Value = "fee currency";
+                //sheet.Range["E1", "H1"].Merge();
+                sheet.Range["E1"].Value = "to";
+                sheet.Range["F1"].Value = "to currency";
 
-            SetupTable(sheet);
+                //sheet.Range["G1", "K1"].Merge();
+                sheet.Range["G1"].Value = "fee";
+                sheet.Range["H1"].Value = "fee currency";
+
+                SetupTable(sheet);
+            });
 
             RefreshFills_Internal(sheet);
         }
@@ -182,14 +207,17 @@ namespace CryptoConnector
             bool wasCreated;
             Worksheet sheet = Globals.ThisAddIn.FindWorksheet(BalanceSheetName, true, out wasCreated);
 
-            if (wasCreated) sheet.Visible = XlSheetVisibility.xlSheetHidden;
+            ExecuteExcelJobSync(delegate ()
+            {
+                if (wasCreated) sheet.Visible = XlSheetVisibility.xlSheetHidden;
 
-            sheet.Range["A1"].Value = "currency";
-            sheet.Range["B1"].Value = "balance";
-            sheet.Range["C1"].Value = "available";
-            sheet.Range["D1"].Value = "holds";
+                sheet.Range["A1"].Value = "currency";
+                sheet.Range["B1"].Value = "balance";
+                sheet.Range["C1"].Value = "available";
+                sheet.Range["D1"].Value = "holds";
 
-            SetupTable(sheet);
+                SetupTable(sheet);
+            });
 
             return RefreshBalance_Internal(sheet);
         }
@@ -199,17 +227,20 @@ namespace CryptoConnector
             bool wasCreated;
             Worksheet sheet = Globals.ThisAddIn.FindWorksheet(BalanceHistorySheetName(id.currency), true, out wasCreated);
 
-            if (wasCreated) sheet.Visible = XlSheetVisibility.xlSheetHidden;
+            ExecuteExcelJobSync(delegate ()
+            {
+                if (wasCreated) sheet.Visible = XlSheetVisibility.xlSheetHidden;
 
-            sheet.Range["A1"].Value = "id";
-            sheet.Range["B1"].Value = "date";
-            sheet.Range["C1"].Value = "type";
-            sheet.Range["D1"].Value = "amount";
-            sheet.Range["E1"].Value = "balance";
-            sheet.Range["F1"].Value = "currency";
-            sheet.Range["G1"].Value = "description";
+                sheet.Range["A1"].Value = "id";
+                sheet.Range["B1"].Value = "date";
+                sheet.Range["C1"].Value = "type";
+                sheet.Range["D1"].Value = "amount";
+                sheet.Range["E1"].Value = "balance";
+                sheet.Range["F1"].Value = "currency";
+                sheet.Range["G1"].Value = "description";
 
-            SetupTable(sheet);
+                SetupTable(sheet);
+            });
 
             /*
              * type is : transfer, match, fee or rebate
@@ -257,6 +288,72 @@ namespace CryptoConnector
                 }
             }
             //return null;
+        }
+
+        /// <summary>
+        /// action will be executed in a safe tread to interact with excel
+        /// this function return when the task has been executed
+        /// </summary>
+        /// <param name="action"></param>
+        protected void ExecuteExcelJobSync(Task action)
+        {
+            // commit job
+            ExcelJobs.Add(action);
+
+            StartExcelJobsRunner();
+
+            action.Wait();
+        }
+
+        protected void ExecuteExcelJobSync(System.Action p)
+        {
+            ExecuteExcelJobSync(new Task(p));
+        }
+
+        /// <summary>
+        /// action will be executed in a safe tread to interact with excel
+        /// return an task to wait on
+        /// </summary>
+        /// <param name="action"></param>
+        protected Task ExecuteExcelJobAsync(Task action)
+        {
+            // commit job
+            ExcelJobs.Add(action);
+
+            StartExcelJobsRunner();
+
+            return action;
+        }
+
+        protected Task ExecuteExcelJobAsync(System.Action p)
+        {
+            return ExecuteExcelJobAsync(new Task(p));
+        }
+
+        /// <summary>
+        /// if the excel job runner thread does not run, launch it
+        /// </summary>
+        private void StartExcelJobsRunner()
+        {
+            if (ExcelJobsThread == null)
+            {
+                // see https://msdn.microsoft.com/fr-fr/library/8sesy69e.aspx
+                Thread t = new Thread(ExcelJobsRunner);
+                t.SetApartmentState(System.Threading.ApartmentState.STA);
+                t.Start();
+            }
+        }
+
+        private void ExcelJobsRunner()
+        {
+            Task nextAction;
+            while (true)
+            {
+                if(ExcelJobs.TryTake(out nextAction, 10000))
+                {
+                    nextAction.RunSynchronously();
+                }
+            }
         }
     }
 }

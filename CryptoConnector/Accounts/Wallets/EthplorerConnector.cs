@@ -37,33 +37,36 @@ namespace CryptoConnector
 
             var accounts = Request<AdressInfo>(API_ADDRESS, $"/getAddressInfo/{PublicKey}?apiKey=freekey");
 
-            int line = 2;
-            // first take care of the eth balance
+            ExecuteExcelJobSync(delegate ()
             {
-                var eth = accounts.ETH;
+                int line = 2;
+                // first take care of the eth balance
+                {
+                    var eth = accounts.ETH;
 
-                sheet.Range["A" + line].Value = ParseSymbol("ETH");
-                sheet.Range["B" + line].Value = eth.balance;
-                sheet.Range["C" + line].Value = eth.balance;
-                sheet.Range["D" + line].Value = 0;
+                    sheet.Range["A" + line].Value = ParseSymbol("ETH");
+                    sheet.Range["B" + line].Value = eth.balance;
+                    sheet.Range["C" + line].Value = eth.balance;
+                    sheet.Range["D" + line].Value = 0;
 
-                res.Add(new AccountId { currency = "ETH" });
+                    res.Add(new AccountId { currency = "ETH" });
 
-                line++;
-            }
+                    line++;
+                }
 
-            // ther list all ERC20 tokens
-            foreach (var a in accounts.tokens)
-            {
-                sheet.Range["A" + line].Value = ParseSymbol(a.tokenInfo.symbol);
-                sheet.Range["B" + line].Value = a.balance / Math.Pow(10, a.tokenInfo.decimals);
-                sheet.Range["C" + line].Value = a.balance / Math.Pow(10, a.tokenInfo.decimals);
-                sheet.Range["D" + line].Value = 0;
+                // ther list all ERC20 tokens
+                foreach (var a in accounts.tokens)
+                {
+                    sheet.Range["A" + line].Value = ParseSymbol(a.tokenInfo.symbol);
+                    sheet.Range["B" + line].Value = a.balance / Math.Pow(10, a.tokenInfo.decimals);
+                    sheet.Range["C" + line].Value = a.balance / Math.Pow(10, a.tokenInfo.decimals);
+                    sheet.Range["D" + line].Value = 0;
 
-                res.Add(new AccountId { currency = a.tokenInfo.symbol });
+                    res.Add(new AccountId { currency = a.tokenInfo.symbol });
 
-                line++;
-            }
+                    line++;
+                }
+            });
 
             return res;
         }

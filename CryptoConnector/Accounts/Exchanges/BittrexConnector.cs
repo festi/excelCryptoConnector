@@ -42,18 +42,22 @@ namespace CryptoConnector
 
             var balances = RequestSecret<Response<List<GetBalance>>>("/api/v1.1/account/getbalances","");
 
-            int line = 2;
-            foreach (var b in balances.result)
+
+            ExecuteExcelJobSync(delegate ()
             {
-                sheet.Range["A" + line].Value = ParseSymbol(b.Currency);
-                sheet.Range["B" + line].Value = b.Balance;
-                sheet.Range["C" + line].Value = b.Available;
-                sheet.Range["D" + line].Formula = string.Format("= B{0} - C{0}", line);
+                int line = 2;
+                foreach (var b in balances.result)
+                {
+                    sheet.Range["A" + line].Value = ParseSymbol(b.Currency);
+                    sheet.Range["B" + line].Value = b.Balance;
+                    sheet.Range["C" + line].Value = b.Available;
+                    sheet.Range["D" + line].Formula = string.Format("= B{0} - C{0}", line);
 
-                res.Add(new AccountId { currency = b.Currency });
+                    res.Add(new AccountId { currency = b.Currency });
 
-                line++;
-            }
+                    line++;
+                }
+            });
 
             return res;
         }

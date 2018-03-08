@@ -42,19 +42,22 @@ namespace CryptoConnector
 
             var account = RequestSecret<Account>("/api/v3/account");
 
-            int line = 2;
-            foreach (var b in account.balances)
+            ExecuteExcelJobSync(delegate()
             {
-                sheet.Range["A" + line].Value = ParseSymbol(b.asset);
-                sheet.Range["B" + line].Value = b.free + b.locked;
-                sheet.Range["C" + line].Value = b.free;
-                sheet.Range["D" + line].Value = b.locked;
+                int line = 2;
+                foreach (var b in account.balances)
+                {
+                    sheet.Range["A" + line].Value = ParseSymbol(b.asset);
+                    sheet.Range["B" + line].Value = b.free + b.locked;
+                    sheet.Range["C" + line].Value = b.free;
+                    sheet.Range["D" + line].Value = b.locked;
 
-                res.Add(new AccountId { currency = b.asset });
+                    res.Add(new AccountId { currency = b.asset });
 
-                line++;
-            }
-
+                    line++;
+                }
+            });
+            
             return res;
         }
 

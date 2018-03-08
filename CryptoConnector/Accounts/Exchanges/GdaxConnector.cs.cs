@@ -43,42 +43,45 @@ namespace CryptoConnector
             LastLineLookup(sheet, "A", out line, out before);
 
             var fills = RequestSecretPaginated<Fill>("/fills", before, x => x.trade_id);
-          
-            //fill the sheet with the response
-            foreach (var f in fills) 
+
+            ExecuteExcelJobSync(delegate ()
             {
-                var currs = f.product_id.Split('-');
-                string from, to, fee = currs[1];
-                double fromAmount, toAmount;
-                if (f.side == "buy")
+                //fill the sheet with the response
+                foreach (var f in fills)
                 {
-                    to = currs[0];
-                    toAmount = f.size;
-                    from = currs[1];
-                    fromAmount = f.size * f.price;
+                    var currs = f.product_id.Split('-');
+                    string from, to, fee = currs[1];
+                    double fromAmount, toAmount;
+                    if (f.side == "buy")
+                    {
+                        to = currs[0];
+                        toAmount = f.size;
+                        from = currs[1];
+                        fromAmount = f.size * f.price;
+                    }
+                    else
+                    {
+                        from = currs[0];
+                        fromAmount = f.size;
+                        to = currs[1];
+                        toAmount = f.size * f.price;
+                    }
+
+                    sheet.Range["A" + line].Value = f.trade_id;
+                    sheet.Range["B" + line].Value = DateTime.Parse(f.created_at);
+
+                    sheet.Range["C" + line].Value = fromAmount;
+                    sheet.Range["D" + line].Value = ParseSymbol(from);
+
+                    sheet.Range["E" + line].Value = toAmount;
+                    sheet.Range["F" + line].Value = ParseSymbol(to);
+
+                    sheet.Range["G" + line].Value = f.fee;
+                    sheet.Range["H" + line].Value = ParseSymbol(fee);
+
+                    line++;
                 }
-                else
-                {
-                    from = currs[0];
-                    fromAmount = f.size;
-                    to = currs[1];
-                    toAmount = f.size * f.price;
-                }
-
-                sheet.Range["A" + line].Value = f.trade_id;
-                sheet.Range["B" + line].Value = DateTime.Parse(f.created_at);
-
-                sheet.Range["C" + line].Value = fromAmount;
-                sheet.Range["D" + line].Value = ParseSymbol(from);
-
-                sheet.Range["E" + line].Value = toAmount;
-                sheet.Range["F" + line].Value = ParseSymbol(to);
-
-                sheet.Range["G" + line].Value = f.fee;
-                sheet.Range["H" + line].Value = ParseSymbol(fee);
-
-                line++;
-            }
+            });
         }
 
         protected override List<AccountId> RefreshBalance_Internal(Worksheet sheet)
@@ -87,18 +90,21 @@ namespace CryptoConnector
 
             var accounts = RequestSecret<List<Account>>("/accounts");
 
-            int line = 2;
-            foreach (var a in accounts)
+            ExecuteExcelJobSync(delegate ()
             {
-                sheet.Range["A" + line].Value = ParseSymbol(a.currency);
-                sheet.Range["B" + line].Value = a.balance;
-                sheet.Range["C" + line].Value = a.available;
-                sheet.Range["D" + line].Value = a.holds;
+                int line = 2;
+                foreach (var a in accounts)
+                {
+                    sheet.Range["A" + line].Value = ParseSymbol(a.currency);
+                    sheet.Range["B" + line].Value = a.balance;
+                    sheet.Range["C" + line].Value = a.available;
+                    sheet.Range["D" + line].Value = a.holds;
 
-                res.Add(new GdaxAccountId { account_id = a.id, currency = a.currency });
+                    res.Add(new GdaxAccountId { account_id = a.id, currency = a.currency });
 
-                line++;
-            }
+                    line++;
+                }
+            });
 
             return res;
         }
@@ -113,17 +119,20 @@ namespace CryptoConnector
 
             var accounts = RequestSecretPaginated<AccountHistory>("/accounts/" + id.account_id + "/ledger", before, x => x.id);
 
-            foreach (var a in accounts)
+            ExecuteExcelJobSync(delegate ()
             {
-                sheet.Range["A" + line].Value = a.id;
-                sheet.Range["B" + line].Value = DateTime.Parse(a.created_at);
-                sheet.Range["C" + line].Value = a.type;
-                sheet.Range["D" + line].Value = a.amount;
-                sheet.Range["E" + line].Value = a.balance;
-                sheet.Range["F" + line].Value = ParseSymbol(id.currency);
+                foreach (var a in accounts)
+                {
+                    sheet.Range["A" + line].Value = a.id;
+                    sheet.Range["B" + line].Value = DateTime.Parse(a.created_at);
+                    sheet.Range["C" + line].Value = a.type;
+                    sheet.Range["D" + line].Value = a.amount;
+                    sheet.Range["E" + line].Value = a.balance;
+                    sheet.Range["F" + line].Value = ParseSymbol(id.currency);
 
-                line++;
-            }
+                    line++;
+                }
+            });
         }
 
         //public Worksheet RefreshDeposits(string account_id, string currency)

@@ -43,26 +43,29 @@ namespace CryptoConnector
             if (since > -1) param.Add("since", (since+1).ToString());
             var balanceHist = RequestSecret<List<BalanceHistory>>("/v1/history", param);
 
-            foreach (var a in balanceHist.Reverse<BalanceHistory>())
+            ExecuteExcelJobSync(delegate ()
             {
-                long timestamp = long.Parse(a.timestamp.Split('.')[0]);
+                foreach (var a in balanceHist.Reverse<BalanceHistory>())
+                {
+                    long timestamp = long.Parse(a.timestamp.Split('.')[0]);
 
-                string type = "ERROR";
-                if (a.description.StartsWith("Deposit")) type = "transfer";
-                if (a.description.StartsWith("Trading fees")) type = "fee";
-                if (a.description.StartsWith("Exchange")) type = "match";
+                    string type = "ERROR";
+                    if (a.description.StartsWith("Deposit")) type = "transfer";
+                    if (a.description.StartsWith("Trading fees")) type = "fee";
+                    if (a.description.StartsWith("Exchange")) type = "match";
 
-                sheet.Range["A" + line].Value = timestamp;
-                sheet.Range["B" + line].Value = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc).AddSeconds(timestamp);
-                sheet.Range["C" + line].Value = type;
-                sheet.Range["D" + line].Value = a.amount;
-                sheet.Range["E" + line].Value = a.balance;
-                sheet.Range["F" + line].Value = ParseSymbol(id.currency);
-                sheet.Range["G" + line].Value = a.description;
-                //sheet.Range["H" + line].Value = "a"+a.timestamp;
+                    sheet.Range["A" + line].Value = timestamp;
+                    sheet.Range["B" + line].Value = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc).AddSeconds(timestamp);
+                    sheet.Range["C" + line].Value = type;
+                    sheet.Range["D" + line].Value = a.amount;
+                    sheet.Range["E" + line].Value = a.balance;
+                    sheet.Range["F" + line].Value = ParseSymbol(id.currency);
+                    sheet.Range["G" + line].Value = a.description;
+                    //sheet.Range["H" + line].Value = "a"+a.timestamp;
 
-                line++;
-            }
+                    line++;
+                }
+            });
         }
 
         protected override List<AccountId> RefreshBalance_Internal(Worksheet sheet)
@@ -71,18 +74,21 @@ namespace CryptoConnector
 
             var balances = RequestSecret<List<Balance>>("/v1/balances");
 
-            int line = 2;
-            foreach (var b in balances)
+            ExecuteExcelJobSync(delegate ()
             {
-                sheet.Range["A" + line].Value = ParseSymbol(b.currency);
-                sheet.Range["B" + line].Value = b.amount;
-                sheet.Range["C" + line].Value = b.available;
-                sheet.Range["D" + line].Formula = string.Format("= B{0} - C{0}", line);
+                int line = 2;
+                foreach (var b in balances)
+                {
+                    sheet.Range["A" + line].Value = ParseSymbol(b.currency);
+                    sheet.Range["B" + line].Value = b.amount;
+                    sheet.Range["C" + line].Value = b.available;
+                    sheet.Range["D" + line].Formula = string.Format("= B{0} - C{0}", line);
 
-                res.Add(new AccountId { currency = b.currency });
+                    res.Add(new AccountId { currency = b.currency });
 
-                line++;
-            }
+                    line++;
+                }
+            });
 
             return res;
         }
@@ -104,45 +110,48 @@ namespace CryptoConnector
                 param["symbol"] = symbol;
                 var trades = RequestSecret<List<Trade>>("/v1/mytrades", param);
 
-                var currs0 = symbol.Substring(0, 3);
-                var currs1 = symbol.Substring(3, 3);
-
-                foreach (var trade in trades)
+                ExecuteExcelJobSync(delegate ()
                 {
-                    long timestamp = long.Parse(trade.timestamp.Split('.')[0]);
+                    var currs0 = symbol.Substring(0, 3);
+                    var currs1 = symbol.Substring(3, 3);
 
-
-                    string from, to;
-                    double fromAmount, toAmount;
-                    if (trade.type == "Buy")
+                    foreach (var trade in trades)
                     {
-                        to = currs0;
-                        toAmount = trade.amount;
-                        from = currs1;
-                        fromAmount = trade.amount * trade.price;
+                        long timestamp = long.Parse(trade.timestamp.Split('.')[0]);
+
+
+                        string from, to;
+                        double fromAmount, toAmount;
+                        if (trade.type == "Buy")
+                        {
+                            to = currs0;
+                            toAmount = trade.amount;
+                            from = currs1;
+                            fromAmount = trade.amount * trade.price;
+                        }
+                        else
+                        {
+                            from = currs0;
+                            fromAmount = trade.amount;
+                            to = currs1;
+                            toAmount = trade.amount * trade.price;
+                        }
+
+                        sheet.Range["A" + line].Value = timestamp;
+                        sheet.Range["B" + line].Value = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc).AddSeconds(timestamp);
+
+                        sheet.Range["C" + line].Value = fromAmount;
+                        sheet.Range["D" + line].Value = ParseSymbol(from);
+
+                        sheet.Range["E" + line].Value = toAmount;
+                        sheet.Range["F" + line].Value = ParseSymbol(to);
+
+                        sheet.Range["G" + line].Value = trade.fee_amount;
+                        sheet.Range["H" + line].Value = ParseSymbol(trade.fee_currency);
+
+                        line++;
                     }
-                    else
-                    {
-                        from = currs0;
-                        fromAmount = trade.amount;
-                        to = currs1;
-                        toAmount = trade.amount * trade.price;
-                    }
-
-                    sheet.Range["A" + line].Value = timestamp;
-                    sheet.Range["B" + line].Value = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc).AddSeconds(timestamp);
-
-                    sheet.Range["C" + line].Value = fromAmount;
-                    sheet.Range["D" + line].Value = ParseSymbol(from);
-
-                    sheet.Range["E" + line].Value = toAmount;
-                    sheet.Range["F" + line].Value = ParseSymbol(to);
-
-                    sheet.Range["G" + line].Value = trade.fee_amount;
-                    sheet.Range["H" + line].Value = ParseSymbol(trade.fee_currency);
-
-                    line++;
-                }
+                });
             }
         }
 
