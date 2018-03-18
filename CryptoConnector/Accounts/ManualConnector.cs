@@ -18,7 +18,7 @@ namespace CryptoConnector
 
         public override bool BalanceContainsAccountName => true;
 
-        public ManualConnector() : base("")
+        public ManualConnector() : base("manual connector")
         {
         }
 

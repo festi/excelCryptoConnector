@@ -20,6 +20,8 @@ namespace CryptoConnector.ui
     /// </summary>
     public partial class SyncStatus : Window, IAccountManagerEvents
     {
+        Dictionary<string, AccountStatus> Accounts = new Dictionary<string, AccountStatus>();
+
         public SyncStatus()
         {
             InitializeComponent();
@@ -37,6 +39,7 @@ namespace CryptoConnector.ui
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                Accounts.Clear();
                 CloseButton.IsEnabled = true;
             }));
         }
@@ -44,6 +47,29 @@ namespace CryptoConnector.ui
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             this.Hide();
+        }
+
+        public void StartSyncAccount(string id, string name)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var a = new AccountStatus(name);
+
+                Accounts.Add(id, a);
+                AccountList.Children.Add(a);
+            }));
+        }
+
+        public void SyncAccountStatus(string id, string status)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                AccountStatus a;
+                if(Accounts.TryGetValue(id, out a))
+                {
+                    a.SetStatus(status);
+                }
+            }));
         }
     }
 }

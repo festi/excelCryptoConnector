@@ -13,6 +13,9 @@ namespace CryptoConnector
     {
         void StartSync();
         void EndSync();
+
+        void StartSyncAccount(string id, string name);
+        void SyncAccountStatus(string id, string status);
     }
 
     class AccountManager
@@ -43,7 +46,8 @@ namespace CryptoConnector
                     // each account is done async
                     Parallel.ForEach(accounts.Where(ex => ex is T), delegate (AccountConnector ex)
                     {
-                        ex.Refresh();
+                        listener.StartSyncAccount(ex.UniqueName, ex.ReadableName);
+                        ex.Refresh(listener);
                     });
 
                     // setup queries if necessary

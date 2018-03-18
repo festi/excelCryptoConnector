@@ -202,6 +202,9 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ui\AccountStatus.xaml.cs">
+      <DependentUpon>AccountStatus.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ui\SyncStatus.xaml.cs">
       <DependentUpon>SyncStatus.xaml</DependentUpon>
     </Compile>
@@ -253,6 +256,10 @@
     <None Include="images\reload.png" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="ui\AccountStatus.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ui\SyncStatus.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

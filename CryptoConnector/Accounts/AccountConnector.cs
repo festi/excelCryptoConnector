@@ -118,21 +118,34 @@ namespace CryptoConnector
             values = _values;
         }
 
-        public void Refresh()
+        public void Refresh(IAccountManagerEvents listener)
         {
-            List<AccountId> accounts = null;
-            if (AccountsSheet.SyncBalance && SupportBalance)
+            try
             {
-                accounts = RefreshBalance();
+                List<AccountId> accounts = null;
+                if (AccountsSheet.SyncBalance && SupportBalance)
+                {
+                    listener.SyncAccountStatus(UniqueName, "sync balance");
+                    accounts = RefreshBalance();
+                }
+                if (AccountsSheet.SyncBalanceHistory && accounts != null && SupportBalanceHistory)
+                {
+                    listener.SyncAccountStatus(UniqueName, "sync balance history");
+                    foreach (var a in accounts) RefreshAccountHistory(a);
+                }
+                if (AccountsSheet.SyncBalanceFills && SupportFills)
+                {
+                    listener.SyncAccountStatus(UniqueName, "sync fills");
+                    RefreshFills();
+                }
             }
-            if (AccountsSheet.SyncBalanceHistory && accounts != null && SupportBalanceHistory)
+            catch(Exception e)
             {
-                foreach (var a in accounts) RefreshAccountHistory(a);
+                listener.SyncAccountStatus(UniqueName, $"Error {e.Message}");
             }
-            if (AccountsSheet.SyncBalanceFills && SupportFills)
-            {
-                RefreshFills();
-            }
+
+
+            listener.SyncAccountStatus(UniqueName, "done");
         }
 
         protected string ParseSymbol(string symbol)
