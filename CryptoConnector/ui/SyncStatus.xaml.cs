@@ -60,14 +60,13 @@ namespace CryptoConnector.ui
             }));
         }
 
-        public void SyncAccountStatus(string id, string status)
+        public void SyncAccountStatus(string id, string status, AccountManagerEventLevel level)
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                AccountStatus a;
-                if(Accounts.TryGetValue(id, out a))
+                if (Accounts.TryGetValue(id, out AccountStatus a))
                 {
-                    a.SetStatus(status);
+                    a.SetStatus(status, level);
                 }
             }));
         }

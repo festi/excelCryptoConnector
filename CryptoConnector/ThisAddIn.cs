@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using Excel = Microsoft.Office.Interop.Excel;
 using Office = Microsoft.Office.Core;
 using Microsoft.Office.Tools.Excel;
+using System.Net;
 
 namespace CryptoConnector
 {
@@ -13,6 +14,9 @@ namespace CryptoConnector
     {
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
+
+            // up ssl default security to TLS1.2 for compatibilityu with some exchanges (binance and cryptopia when this comment was written)
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)

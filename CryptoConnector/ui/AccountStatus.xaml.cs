@@ -20,6 +20,8 @@ namespace CryptoConnector.ui
     /// </summary>
     public partial class AccountStatus : UserControl
     {
+        private AccountManagerEventLevel CurrentLevel = AccountManagerEventLevel.Info;
+
         public AccountStatus()
         {
             InitializeComponent();
@@ -30,9 +32,13 @@ namespace CryptoConnector.ui
             AccName.Content = name;
         }
 
-        internal void SetStatus(string status)
+        internal void SetStatus(string status, AccountManagerEventLevel level)
         {
-            AccStatus.Content = status;
+            if(level >= CurrentLevel)
+            {
+                AccStatus.Content = status;
+                CurrentLevel = level;
+            }
         }
     }
 }

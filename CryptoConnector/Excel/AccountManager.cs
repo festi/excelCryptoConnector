@@ -9,13 +9,16 @@ using System.Threading;
 
 namespace CryptoConnector
 {
+    public enum AccountManagerEventLevel { Info = 0, Error = 1 };
+
     public interface IAccountManagerEvents
     {
+
         void StartSync();
         void EndSync();
 
         void StartSyncAccount(string id, string name);
-        void SyncAccountStatus(string id, string status);
+        void SyncAccountStatus(string id, string status, AccountManagerEventLevel level = AccountManagerEventLevel.Info);
     }
 
     class AccountManager

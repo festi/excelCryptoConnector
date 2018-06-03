@@ -141,7 +141,16 @@ namespace CryptoConnector
             }
             catch(Exception e)
             {
-                listener.SyncAccountStatus(UniqueName, $"Error {e.Message}");
+                string text;
+                if(e is AggregateException agg)
+                {
+                    text = agg.InnerExceptions.Aggregate("", (txt, ex) => $"{txt} {ex}");
+                }
+                else
+                {
+                    text = e.Message;
+                }
+                listener.SyncAccountStatus(UniqueName, $"Error {text}", AccountManagerEventLevel.Error);
             }
 
 
